@@ -1,0 +1,32 @@
+{
+    "name": "artisan-build/modular-livewire",
+    "description": "Livewire 4 component generator with internachi/modular support",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ed Combs",
+            "email": "ed@artisan-build.io"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "livewire/livewire": "^4.0",
+        "internachi/modular": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ArtisanBuild\\ModularLivewire\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ArtisanBuild\\ModularLivewire\\Providers\\ModularLivewireServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

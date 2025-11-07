@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanBuild\ModularLivewire\Commands;
 
 use Illuminate\Support\Facades\Config;
@@ -12,6 +14,29 @@ use Livewire\Finder\Finder;
 class MakeLivewireCommand extends MakeCommand
 {
     use Modularize;
+
+    public function handle()
+    {
+        if ($module = $this->module()) {
+            // Configure Livewire paths for the module
+            $this->configureModulePaths($module);
+
+            // Replace the Finder instance with one configured for the module
+            $this->configureModuleFinder($module);
+        }
+
+        return parent::handle();
+    }
+
+    public function call($command, array $arguments = [])
+    {
+        // Pass the --module flag on to subsequent commands
+        if ($module = $this->option('module')) {
+            $arguments['--module'] = $module;
+        }
+
+        return $this->runCommand($command, $arguments, $this->output);
+    }
 
     /**
      * Get the module configuration if --module option is provided.
@@ -31,19 +56,6 @@ class MakeLivewireCommand extends MakeCommand
         return null;
     }
 
-    public function handle()
-    {
-        if ($module = $this->module()) {
-            // Configure Livewire paths for the module
-            $this->configureModulePaths($module);
-
-            // Replace the Finder instance with one configured for the module
-            $this->configureModuleFinder($module);
-        }
-
-        return parent::handle();
-    }
-
     /**
      * Configure Livewire configuration paths for the module.
      */
@@ -61,7 +73,7 @@ class MakeLivewireCommand extends MakeCommand
      */
     protected function configureModuleFinder(ModuleConfig $module): void
     {
-        $finder = new Finder();
+        $finder = new Finder;
 
         // Add the module location to the finder
         $finder->addLocation(
@@ -99,8 +111,8 @@ class MakeLivewireCommand extends MakeCommand
             $viewName = implode('.', $viewSegments);
 
             // Build paths within the module
-            $classPath = $module->path('src/Livewire/' . str_replace('\\', '/', $className) . '.php');
-            $viewPath = $module->path('resources/views/livewire/' . str_replace('.', '/', $viewName) . '.blade.php');
+            $classPath = $module->path('src/Livewire/'.str_replace('\\', '/', $className).'.php');
+            $viewPath = $module->path('resources/views/livewire/'.str_replace('.', '/', $viewName).'.blade.php');
 
             $this->ensureDirectoryExists(dirname($classPath));
             $this->ensureDirectoryExists(dirname($viewPath));
@@ -131,13 +143,13 @@ class MakeLivewireCommand extends MakeCommand
             $namespace = $module->qualify('Livewire');
 
             if (! empty($namespaceSegments)) {
-                $namespace .= '\\' . collect($namespaceSegments)
+                $namespace .= '\\'.collect($namespaceSegments)
                     ->map(fn ($segment) => Str::studly($segment))
                     ->implode('\\');
             }
 
             // Build the view name with module namespace
-            $viewName = 'livewire.' . collect($segments)
+            $viewName = 'livewire.'.collect($segments)
                 ->map(fn ($segment) => Str::kebab($segment))
                 ->implode('.');
 
@@ -149,15 +161,5 @@ class MakeLivewireCommand extends MakeCommand
         }
 
         return parent::buildClassBasedComponentClass($name);
-    }
-
-    public function call($command, array $arguments = [])
-    {
-        // Pass the --module flag on to subsequent commands
-        if ($module = $this->option('module')) {
-            $arguments['--module'] = $module;
-        }
-
-        return $this->runCommand($command, $arguments, $this->output);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ArtisanBuild\ModularLivewire\Providers;
 
 use ArtisanBuild\ModularLivewire\Commands\MakeLivewireCommand;
@@ -48,7 +50,7 @@ class ModularLivewireServiceProvider extends ServiceProvider
         // Ensure that if 'make:livewire' is resolved from the container in the future,
         // our subclass is used instead
         $this->app->extend(LivewireMakeCommand::class, function () {
-            return new MakeLivewireCommand();
+            return new MakeLivewireCommand;
         });
     }
 }

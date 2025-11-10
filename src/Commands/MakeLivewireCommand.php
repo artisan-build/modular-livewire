@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use InterNACHI\Modular\Console\Commands\Modularize;
 use InterNACHI\Modular\Support\ModuleConfig;
+use InterNACHI\Modular\Support\ModuleRegistry;
 use Livewire\Features\SupportConsoleCommands\Commands\MakeCommand;
 use Livewire\Finder\Finder;
+use Symfony\Component\Console\Exception\InvalidOptionException;
 
 class MakeLivewireCommand extends MakeCommand
 {
@@ -17,7 +19,7 @@ class MakeLivewireCommand extends MakeCommand
 
     public function handle()
     {
-        if ($module = $this->module()) {
+        if (($module = $this->module()) instanceof ModuleConfig) {
             // Configure Livewire paths for the module
             $this->configureModulePaths($module);
 
@@ -44,13 +46,13 @@ class MakeLivewireCommand extends MakeCommand
     protected function module(): ?ModuleConfig
     {
         if ($name = $this->option('module')) {
-            $registry = $this->getLaravel()->make(\InterNACHI\Modular\Support\ModuleRegistry::class);
+            $registry = $this->getLaravel()->make(ModuleRegistry::class);
 
             if ($module = $registry->module($name)) {
                 return $module;
             }
 
-            throw new \Symfony\Component\Console\Exception\InvalidOptionException(sprintf('The "%s" module does not exist.', $name));
+            throw new InvalidOptionException(sprintf('The "%s" module does not exist.', $name));
         }
 
         return null;
@@ -98,16 +100,16 @@ class MakeLivewireCommand extends MakeCommand
 
     protected function createClassBasedComponent(string $name): int
     {
-        if ($module = $this->module()) {
+        if (($module = $this->module()) instanceof ModuleConfig) {
             // Parse the component name into segments
             $segments = explode('.', $name);
 
             // Convert segments to StudlyCase for class name
-            $classSegments = array_map(fn ($segment) => Str::studly($segment), $segments);
+            $classSegments = array_map(Str::studly(...), $segments);
             $className = implode('\\', $classSegments);
 
             // Convert segments to kebab-case for view name
-            $viewSegments = array_map(fn ($segment) => Str::kebab($segment), $segments);
+            $viewSegments = array_map(Str::kebab(...), $segments);
             $viewName = implode('.', $viewSegments);
 
             // Build paths within the module
@@ -133,7 +135,7 @@ class MakeLivewireCommand extends MakeCommand
 
     protected function buildClassBasedComponentClass(string $name): string
     {
-        if ($module = $this->module()) {
+        if (($module = $this->module()) instanceof ModuleConfig) {
             $stub = $this->files->get($this->getStubPath('livewire.stub'));
 
             $segments = explode('.', $name);
@@ -142,7 +144,7 @@ class MakeLivewireCommand extends MakeCommand
 
             $namespace = $module->qualify('Livewire');
 
-            if (! empty($namespaceSegments)) {
+            if ($namespaceSegments !== []) {
                 $namespace .= '\\'.collect($namespaceSegments)
                     ->map(fn ($segment) => Str::studly($segment))
                     ->implode('\\');
@@ -155,9 +157,8 @@ class MakeLivewireCommand extends MakeCommand
 
             $stub = str_replace('[namespace]', $namespace, $stub);
             $stub = str_replace('[class]', $className, $stub);
-            $stub = str_replace('[view]', $viewName, $stub);
 
-            return $stub;
+            return str_replace('[view]', $viewName, $stub);
         }
 
         return parent::buildClassBasedComponentClass($name);

@@ -19,8 +19,8 @@ class ModularLivewireServiceProvider extends ServiceProvider
         // Register our command override via the "booted" event to ensure we override
         // the default Livewire behavior regardless of which service provider happens
         // to be bootstrapped first
-        $this->app->booted(function () {
-            Artisan::starting(function (Artisan $artisan) {
+        $this->app->booted(function (): void {
+            Artisan::starting(function (Artisan $artisan): void {
                 $this->registerLivewireOverride($artisan);
             });
         });
@@ -49,8 +49,6 @@ class ModularLivewireServiceProvider extends ServiceProvider
 
         // Ensure that if 'make:livewire' is resolved from the container in the future,
         // our subclass is used instead
-        $this->app->extend(LivewireMakeCommand::class, function () {
-            return new MakeLivewireCommand;
-        });
+        $this->app->extend(LivewireMakeCommand::class, fn (): MakeLivewireCommand => new MakeLivewireCommand);
     }
 }

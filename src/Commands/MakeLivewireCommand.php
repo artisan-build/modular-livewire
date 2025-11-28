@@ -133,12 +133,12 @@ class MakeLivewireCommand extends MakeCommand
         return parent::createClassBasedComponent($name);
     }
 
-    protected function buildClassBasedComponentClass(string $name): string
+    protected function buildClassBasedComponentClass(string $componentName, ?array $classNamespaceDetails = null): string
     {
         if (($module = $this->module()) instanceof ModuleConfig) {
             $stub = $this->files->get($this->getStubPath('livewire.stub'));
 
-            $segments = explode('.', $name);
+            $segments = explode('.', $componentName);
             $className = Str::studly(end($segments));
             $namespaceSegments = array_slice($segments, 0, -1);
 
@@ -161,6 +161,6 @@ class MakeLivewireCommand extends MakeCommand
             return str_replace('[view]', $viewName, $stub);
         }
 
-        return parent::buildClassBasedComponentClass($name);
+        return parent::buildClassBasedComponentClass($componentName, $classNamespaceDetails);
     }
 }
